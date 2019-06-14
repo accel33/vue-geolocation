@@ -5,6 +5,9 @@
 </template>
 
 <script>
+import firebase from "firebase";
+import { setTimeout } from "timers";
+import db from "../../firebase/init";
 export default {
    name: "GMap",
    data() {
@@ -25,7 +28,48 @@ export default {
       }
    },
    mounted() {
-      this.renderMap();
+      // Get current user
+      let user = firebase.auth().currentUser;
+      console.log("Auth data ");
+      console.log("Uid " + user.uid);
+
+      // Get user Geolocation
+      if (navigator.geolocation) {
+         navigator.geolocation.getCurrentPosition(
+            posAsync => {
+               this.lat = posAsync.coords.latitude;
+               this.lng = posAsync.coords.longitude;
+
+               // Find the user record and then update geo-coords
+               db.collection("users")
+                  .where("user_id", "==", user.uid)
+                  .get()
+                  .then(dataSnapshot => {
+                     dataSnapshot.forEach(doc => {
+                        db.collection("users")
+                           .doc(doc.id)
+                           .update({
+                              geolocation: {
+                                 lat: posAsync.coords.latitude,
+                                 lng: posAsync.coords.longitude
+                              }
+                           });
+                     });
+                  })
+                  .then(() => {
+                     this.renderMap();
+                  });
+            },
+            err => {
+               console.log(err);
+               this.renderMap();
+            },
+            { maximumAge: 60000, timeout: 3000 }
+         );
+      } else {
+         // position center by default values
+         this.renderMap();
+      }
    }
 };
 </script>
