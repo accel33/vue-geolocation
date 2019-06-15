@@ -30,4 +30,10 @@ A user collection is setup on this database and inside this users collection, ea
 
 ## Users Collection (Firestore)
 
-More information needed...
+More information needed... 
+
+## Deployed with firebase
+
+## Hi Miyuki!
+
+https://vue-geolocation-33.firebaseapp.com/
