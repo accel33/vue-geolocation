@@ -3,7 +3,10 @@
       <div class="card" v-if="profile">
          <h2 class="deep-purple-text center">{{profile.alias}}'s Wall</h2>
          <ul class="comments collection">
-            <li>Comment</li>
+            <li v-for="(c,i) in comments" :key="i">
+               <div class="deep-purple-text">{{c.from}}</div>
+               <div class="grey-text text-darken=2">{{c.content}}</div>
+            </li>
          </ul>
          <form @submit.prevent="addcomment" class="card-panel">
             <label for="comment">Write a post</label>
@@ -23,7 +26,8 @@ export default {
          profile: null,
          comment: null,
          feedback: null,
-         user: null
+         user: null,
+         comments: []
       };
    },
    created() {
@@ -38,10 +42,27 @@ export default {
             });
          });
 
+      // Profile data
       ref.doc(this.$route.params.id)
          .get()
          .then(user => {
             this.profile = user.data();
+         });
+
+      // Comments
+      db.collection("comments")
+         .where("to", "==", this.$route.params.id)
+         .onSnapshot(snapshot => {
+            snapshot.docChanges().forEach(change => {
+               console.log(change.doc);
+
+               if (change.type == "added") {
+                  this.comments.unshift({
+                     from: change.doc.data().from,
+                     content: change.doc.data().content
+                  });
+               }
+            });
          });
    },
    methods: {
