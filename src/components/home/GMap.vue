@@ -55,8 +55,6 @@ export default {
    mounted() {
       // Get current user
       let user = firebase.auth().currentUser;
-      console.log("Auth data ");
-      console.log("Uid " + user.uid);
 
       // Get user Geolocation
       if (navigator.geolocation) {

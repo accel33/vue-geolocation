@@ -30,6 +30,44 @@ export default {
          comments: []
       };
    },
+   watch: {
+      $route(to, from) {
+         // react to route changes...
+         this.profile = null;
+         this.comment = null;
+         this.feedback = null;
+         this.user = null;
+         this.comments = [];
+         let ref = db.collection("users");
+         ref.where("user_id", "==", firebase.auth().currentUser.uid)
+            .get()
+            .then(dataSnapshot => {
+               dataSnapshot.forEach(doc => {
+                  (this.user = doc.data()), (this.user.id = doc.id);
+               });
+            });
+
+         // Profile data
+         ref.doc(this.$route.params.id)
+            .get()
+            .then(user => {
+               this.profile = user.data();
+            });
+         db.collection("comments")
+            .where("to", "==", this.$route.params.id)
+            .onSnapshot(snapshot => {
+               snapshot.docChanges().forEach(change => {
+                  if (change.type == "added") {
+                     this.comments.unshift({
+                        from: change.doc.data().from,
+                        content: change.doc.data().content
+                     });
+                  }
+               });
+            });
+      }
+   },
+
    created() {
       let ref = db.collection("users");
 
@@ -54,8 +92,6 @@ export default {
          .where("to", "==", this.$route.params.id)
          .onSnapshot(snapshot => {
             snapshot.docChanges().forEach(change => {
-               console.log(change.doc);
-
                if (change.type == "added") {
                   this.comments.unshift({
                      from: change.doc.data().from,
@@ -72,7 +108,7 @@ export default {
             db.collection("comments")
                .add({
                   to: this.$route.params.id,
-                  from: this.user.id,
+                  from: this.user.alias,
                   content: this.comment,
                   time: Date.now()
                })
@@ -87,5 +123,17 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
+.card {
+   padding: 20px;
+   margin-top: 60px;
+}
+h2 {
+   font-size: 2em;
+   margin-top: 0;
+}
+li {
+   padding: 10px;
+   border-bottom: 1px solid #eee;
+}
 </style>
