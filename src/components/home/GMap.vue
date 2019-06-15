@@ -41,7 +41,10 @@ export default {
                      });
                      // Add click event to marker
                      marker.addListener("click", () => {
-                        console.log(doc.id);
+                        this.$router.push({
+                           name: "viewprofile",
+                           params: { id: doc.id }
+                        });
                      });
                   } else {
                   }
