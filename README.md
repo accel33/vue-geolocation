@@ -34,6 +34,4 @@ More information needed...
 
 ## Deployed with firebase
 
-## Hi Miyuki!
-
 https://vue-geolocation-33.firebaseapp.com/

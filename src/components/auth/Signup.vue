@@ -26,6 +26,7 @@
 import slugify from "slugify";
 import db from "@/firebase/init";
 import firebase from "firebase";
+import functions from "firebase/functions";
 export default {
    name: "Signup",
    data() {
@@ -39,26 +40,35 @@ export default {
    },
    methods: {
       signup() {
-         if ((this.alias, this.email, this.password)) {
+         if ((this.email, this.password, this.alias)) {
             this.slug = slugify(this.alias, {
                replacement: "-",
                remove: /[$*_+~.()'"!\-:@]/g,
                lower: true
             });
-            let ref = db.collection("users").doc(this.slug);
-            ref.get().then(doc => {
-               if (doc.exists) {
+
+            // let ref = db.collection("users").doc(this.slug);
+            let checkAlias = firebase
+               .functions()
+               .httpsCallable("checkUserAlias");
+            checkAlias({ slug: this.slug }).then(result => {
+               console.log(result);
+
+               // code that was workung without firebase function
+               if (!result.data.unique) {
                   this.feedback = "This alias already exists";
                } else {
                   firebase
                      .auth()
                      .createUserWithEmailAndPassword(this.email, this.password)
                      .then(cred => {
-                        ref.set({
-                           alias: this.alias,
-                           geolocation: null,
-                           user_id: cred.user.uid
-                        });
+                        db.collection("users")
+                           .doc(this.slug)
+                           .set({
+                              alias: this.alias,
+                              geolocation: null,
+                              user_id: cred.user.uid
+                           });
                      })
                      .then(() => {
                         this.$router.push({ name: "gmap" });
